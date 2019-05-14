@@ -1,0 +1,4 @@
+{
+  "message": "Auth failed",
+  "err": "Cannot read property 'split' of undefined"
+}
