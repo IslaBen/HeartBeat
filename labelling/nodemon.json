@@ -1,0 +1,7 @@
+{
+  "env": {
+      "MONGO_ATLAS_PW":"labellingAPI",
+      "JWT_KEY": "4Si_S8A",
+      "domain": "http://localhost:4000/"
+  }
+}

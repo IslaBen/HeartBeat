@@ -1,0 +1,8 @@
+GET http://localhost:4000/cnn
+Accept: */*
+Cache-Control: no-cache
+
+<> 2019-04-30T083834.401.json
+
+###
+
