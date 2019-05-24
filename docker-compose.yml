@@ -1,10 +1,16 @@
 version: "3"
 services:
-  web:
+  labelling:
+    build: ./labelling/
+    ports:
+      - "4000:4000"
+
+  authentication:
     # replace username/repo:tag with your name and image details
     image: mecherefadelyoucef/jwt_microservice:latest
+    build: ./jwt_microservice/
     volumes:
-      - db:/
+      - .:/db
     deploy:
       replicas: 1
       resources:
