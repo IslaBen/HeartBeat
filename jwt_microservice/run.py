@@ -6,15 +6,21 @@ from passlib.hash import pbkdf2_sha256
 from flask_jwt_extended import JWTManager
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
 from hashlib import sha256
+from flask_cors import CORS, cross_origin
+
 
 
 app = Flask(__name__)
+cors = CORS(app, resources={r"/*": {"origins": "*"}})
+
 api = Api(app)
 
+# cros config
+app.config['CORS_HEADERS'] = 'application/json'
 
 # JWT Config
 
-app.config['JWT_SECRET_KEY'] = 'SuperSecretPasswordMrJo'
+app.config['JWT_SECRET_KEY'] = '4Si_S8A'
 jwt = JWTManager(app)
 
 
@@ -49,7 +55,9 @@ class UserModel(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(120), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(120), nullable=False)
+    name = db.Column(db.String(255),nullable=False)
 
     def save_to_db(self):
         db.session.add(self)
@@ -60,11 +68,17 @@ class UserModel(db.Model):
         return cls.query.filter_by(username=username).first()
 
     @classmethod
+    def find_by_email(cls, email):
+        return cls.query.filter_by(email=email).first()
+
+    @classmethod
     def return_all(cls):
         def to_json(x):
             return {
                 'username': x.username,
-                'password': x.password
+                'email': x.email,
+                'password': x.password,
+                'name' :x.name,
             }
 
         return {'users': list(map(lambda x: to_json(x), UserModel.query.all()))}
@@ -116,14 +130,21 @@ class RevokedTokenModel(db.Model):
 # views
 
 parser = reqparse.RequestParser()
+
 parser.add_argument('username', help = 'Username field cannot be blank', required = True)
-parser.add_argument('password', help = 'Passwors field cannot be blank', required = True)
+parser.add_argument('email', help = 'Email field cannot be blank', required = True)
+parser.add_argument('password', help = 'Password field cannot be blank', required = True)
+parser.add_argument('name', help = 'Name field cannot be blank', required = True)
+
+parser_login = reqparse.RequestParser()
+parser_login.add_argument('username_email', help = 'Username/Email field cannot be blank', required = True)
+parser_login.add_argument('password', help = 'Password field cannot be blank', required = True)
 
 
 @app.route('/')
 def index():
     return jsonify({'message': 'Hello, World!'})
-
+lim
 
  # Resources
 
@@ -131,17 +152,22 @@ class UserRegistration(Resource):
     def post(self):
         data = parser.parse_args()
 
-        if UserModel.find_by_username(sha256(data['username'].encode('utf')).hexdigest()):
-            return {'message': 'User {} already exists'.format(data['username'])}
+        if UserModel.find_by_username(data['username']):
+            return {'message': 'Username {} already exists'.format(data['username'])}
+        if UserModel.find_by_email(data['email']):
+            return {'message': 'Email {} already exists'.format(data['email'])}
+
 
         new_user = UserModel(
-            username=sha256(data['username'].encode('utf')).hexdigest(),
-            password=UserModel.generate_hash(data['password']) # hashpass change randomlly
+            username=data['username'],
+            email=data['email'],
+            password=UserModel.generate_hash(data['password']), # hashpass change randomlly
+            name=data['name']
         )
         try:
             new_user.save_to_db()
-            access_token = create_access_token(identity=sha256((data['username']).encode('utf')).hexdigest()+" "+str(new_user.id))
-            refresh_token = create_refresh_token(identity=sha256((data['username']).encode('utf')).hexdigest()+" "+str(new_user.id))
+            access_token = create_access_token(identity=data['username']+","+data['name']+","+data['email'])
+            refresh_token = create_refresh_token(identity=data['username']+","+data['name']+","+data['email'])
             return {
                 'message': 'User {} was created'.format(data['username']),
                 'access_token': access_token,
@@ -153,14 +179,20 @@ class UserRegistration(Resource):
 
 class UserLogin(Resource):
     def post(self):
-        data = parser.parse_args()
-        current_user = UserModel.find_by_username(sha256(data['username'].encode('utf')).hexdigest())
-        if not current_user:
-            return {'message': 'User {} doesn\'t exist'.format(data['username'])}
+        data = parser_login.parse_args()
+
+        if("@" in data['username_email']):
+            current_user = UserModel.find_by_email(data['username_email'])
+            if not current_user:
+                return {'message': 'Email {} doesn\'t exist'.format(data['username_email'])}
+        else:
+            current_user = UserModel.find_by_username(data['username_email'])
+            if not current_user:
+                return {'message': 'Username {} doesn\'t exist'.format(data['username_email'])}
 
         if UserModel.verify_hash(data['password'], current_user.password):
-            access_token = create_access_token(identity=sha256((data['username']).encode('utf')).hexdigest()+" "+str(current_user.id))
-            refresh_token = create_refresh_token(identity=sha256((data['username']).encode('utf')).hexdigest()+" "+str(current_user.id))
+            access_token = create_access_token(identity=current_user.username + "," + current_user.name + "," + current_user.email)
+            refresh_token = create_refresh_token(identity=current_user.username + "," + current_user.name + "," + current_user.email)
             return {'message': 'Logged in as {}'.format(current_user.username),
                     'access_token': access_token,
                     'refresh_token': refresh_token
@@ -207,6 +239,7 @@ class AllUsers(Resource):
     def get(self):
         return UserModel.return_all()
 
+
     def delete(self):
         return UserModel.delete_all()
 
@@ -215,18 +248,18 @@ class SecretResource(Resource):
     @jwt_required
     def get(self):
         # Access the identity of the current user with get_jwt_identity
-        current_user = get_jwt_identity()  # username hash + id
-        return {'logged_in_as':current_user}, 200
+        current_user = get_jwt_identity()  # username name email
+        return {'username':current_user.split(',')[0],'name':current_user.split(',')[1],'email':current_user.split(',')[2]}, 200
 
 
-api.add_resource(UserRegistration, '/registration')
+api.add_resource(UserRegistration, '/register')
 api.add_resource(UserLogin, '/login')
 api.add_resource(UserLogoutAccess, '/logout/access')
 api.add_resource(UserLogoutRefresh, '/logout/refresh')
 api.add_resource(TokenRefresh, '/token/refresh')
-#api.add_resource(AllUsers, '/users')
-api.add_resource(SecretResource, '/secret')
+api.add_resource(AllUsers, '/users')
+api.add_resource(SecretResource, '/profil')
 
 
 if __name__ == '__main__':
-    app.run(debug=True,host='0.0.0.0')
+    app.run(debug=True)
