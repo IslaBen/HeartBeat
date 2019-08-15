@@ -1,0 +1,234 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "description": "This is a REST API with python flask librarie",
+    "version": "1.0.0",
+    "title": "JWT Authentification microservice",
+    "contact": {
+      "email": "a.mecheref@esi-sba.dz"
+    },
+    "license": {
+      "name": "ESI SBA",
+      "url": "http://esi-sba.dz"
+    }
+  },
+  "servers": [
+    {"url": "/"}
+  ],
+  "tags": [
+    {
+      "name": "User",
+      "description": "Operations about user"
+    }
+  ],
+  "paths": {
+    "/register": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Register user into system",
+        "requestBody": {
+          "description": "Returns access_token & refresh_token",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserRegistration"
+              }
+            }
+          }
+        },
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Failed. Bad post data."
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Logs user into system",
+         "requestBody": {
+          "description": "Returns access_token & refresh_token",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserLogin"
+              }
+            }
+          }
+        },
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Failed. Bad post data."
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+
+    },
+    "/logout/access": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Logs out current logged in user sessionand access token will be revoked",
+        "security": [{"bearerAuth":  []}],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Not authenticated"
+          }
+
+        }
+      }
+    },
+    "/logout/refresh": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+         "summary": "Logs out current logged in user session and refresh token will be revoked",
+         "security": [{"bearerAuth":  []}],
+         "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Not authenticated"
+          }
+
+        }
+      }
+
+    },
+    "/token/refresh": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "User want to refresh the expired access token, Returns access_token",
+        "security": [{"bearerAuth":  []}],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Not authenticated"
+          },
+          "403": {
+            "description": "Refresh token does not have the required scope"
+          }
+        }
+      }
+
+    },
+    "/users": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "get all registred users",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "User"
+        ],
+        "summary": "delete all registred users",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/profil": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "get profil informations , returns username & name & email",
+        "security": [{"bearerAuth":  []}],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "UserRegistration": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "format": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "format": "password"
+          },
+          "name": {
+            "type": "string",
+            "format": "string"
+          }
+        }
+      },
+      "UserLogin": {
+        "type": "object",
+         "properties": {
+           "username_email": {
+            "type": "string",
+            "format": "email|string"
+          },
+          "password": {
+            "type": "string",
+            "format": "password"
+          }
+         }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+}

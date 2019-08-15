@@ -3,3 +3,6 @@ flask_restful
 flask_sqlalchemy
 passlib
 flask_jwt_extended
+flask_cors
+flask-swagger-ui
+numpy

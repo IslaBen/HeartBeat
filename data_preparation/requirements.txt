@@ -1,0 +1,7 @@
+pillow
+opencv-python
+numpy
+flask
+flask_restful
+flask_cors
+flask-swagger-ui
