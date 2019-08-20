@@ -51,6 +51,36 @@
           }
         }
       }
+    },
+    "/light_prepare": {
+      "post": {
+        "tags": [
+          "Preparation"
+        ],
+        "summary": "takes the v5 , filter black and white,  cut it into several piece according to the pulse number ",
+        "requestBody": {
+          "description": "Returns cropped* images",
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/LightPreparation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Failed. Bad post data."
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -70,6 +100,20 @@
           "p2": {
             "type": "string",
             "format": "string"
+          },
+          "pulses": {
+            "type": "integer",
+            "format": "integer"
+          }
+        }
+      },
+      "LightPreparation": {
+        "type": "object",
+        "properties": {
+          "v5": {
+            "contentType": "image/jpeg,image/png",
+            "type": "string",
+            "format": "binary"
           },
           "pulses": {
             "type": "integer",

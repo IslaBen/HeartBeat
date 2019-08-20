@@ -45,7 +45,7 @@ def black_white_v5():
     width, height = im.size
 
     # just let black pixels and replace others with white
-    changed_pixels = [pixel if pixel < ( 120, 120, 120) else (255, 255, 255) for pixel in pixels]
+    changed_pixels = [pixel if pixel < ( 100, 100, 100) else (255, 255, 255) for pixel in pixels]
     # make it black and white
     changed_pixels = [pixel if pixel==(255, 255, 255) else (0, 0, 0) for pixel in changed_pixels]
 
@@ -115,6 +115,12 @@ parser.add_argument('p1', help='p1 field cannot be blank', required=True)
 parser.add_argument('pulses',type=int, help='pulses field cannot be blank', required=True)
 
 
+parser2 = reqparse.RequestParser()
+
+parser2.add_argument('v5',type=werkzeug.datastructures.FileStorage, location='files', help='v5 field cannot be blank', required=True)
+parser2.add_argument('pulses',type=int, help='pulses field cannot be blank', required=True)
+
+
 # Resources
 
 class Preparation(Resource):
@@ -137,8 +143,24 @@ class Preparation(Resource):
         return jsonify({'message': 'success'})
 
 
+class LightPreparation(Resource):
+    def post(self):
+        # inputs :
+        # v5 = 'v5.png'
+        # pulses = 3
+        data = parser2.parse_args()
+        v5 , pulses = data['v5'], data['pulses']
+        v5.save('static/v5.png')
+        black_white_v5()
+        multiple_images(pulses)
+        return jsonify({'message': 'success'})
+
+
+
+
 
 api.add_resource(Preparation,'/prepare')
+api.add_resource(LightPreparation,'/light_prepare')
 
 
 if __name__ == '__main__':
