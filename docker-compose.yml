@@ -16,7 +16,7 @@ services:
     build: ./labelling/
     container_name: labelling
     ports:
-      - "80:4000"
+      - "80"
 
   authentication:
     # replace username/repo:tag with your name and image details
@@ -29,13 +29,13 @@ services:
       restart_policy:
         condition: on-failure
     ports:
-      - "80:5000"
+      - "80"
 
   data_preparation:
     build: ./data_preparation/
     container_name: data_preparation
     expose:
-      - "80:5000"
+      - "80"
     
 volumes:
   db:
