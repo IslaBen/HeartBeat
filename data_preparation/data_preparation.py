@@ -7,6 +7,9 @@ from flask_cors import CORS, cross_origin
 from flask_swagger_ui import get_swaggerui_blueprint
 from flask import jsonify
 import werkzeug
+import matplotlib.pyplot as plt
+import csv
+import biosppy
 
 
 # ************************** data preparation microservice **************************#
@@ -14,7 +17,7 @@ import werkzeug
 # outputs : bw.png , cropped* images                                                 #
 # ***********************************************************************************#
 
-
+# --------------------------- TREAT ( 1 ) ---------------------------
 
 # 1- ************* crop the real ecg V5 into 800 * 220 *************
 
@@ -32,8 +35,6 @@ def crop_v5(p1,p2):
 
     re = cv2.resize(cropped, (800, 220))  # make it 800 * 220
     cv2.imwrite('static/v5.png', re)
-
-
 
 
 # 2- ************* make the image black and white with pilow *************
@@ -67,10 +68,60 @@ def multiple_images(pulses):
         start_row, start_col = int(height * 0), int(width * col_parser)  # left top
         end_row, end_col = int(height * 1), int(width * (col_parser+col_padding))  # buttom right
         cropped = img[start_row:end_row, start_col:end_col]
-        re = cv2.resize(cropped,(128,128)) # make it 128 * 128
-        cv2.imwrite('static/cropped'+str(i)+'.png', re)
+
+        # make white border
+        bordersize = 100
+        border = cv2.copyMakeBorder(cropped, top=0, bottom=0, left=bordersize, right=bordersize,borderType=cv2.BORDER_CONSTANT, value=[255, 255, 255])
+
+        #resize 128 * 128
+        re = cv2.resize(border,(128,128)) # make it 128 * 128
+        
         col_parser+=col_padding
 
+        if(i == 0 or i == pulses-1):
+            pass
+        else:
+            cv2.imwrite('static/cropped' + str(i) + '.png', re)
+
+
+
+# --------------------------- TREAT ( 2 ) ---------------------------
+
+# 1- detect peak R
+
+def detect_peak(samp_rate):
+    data = np.loadtxt('static/file.txt')
+    signals = []
+    count = 1
+    peaks = biosppy.signals.ecg.christov_segmenter(signal=data, sampling_rate=samp_rate)[0]
+    for i in (peaks[1:-1]):
+        diff1 = abs(peaks[count - 1] - i)
+        diff2 = abs(peaks[count + 1] - i)
+        x = peaks[count - 1] + diff1 // 2
+        y = peaks[count + 1] - diff2 // 2
+        signal = data[x:y]
+        signals.append(signal)
+        count += 1
+    return signals
+
+# 2 - generate multiple images into 128*128 with openCV & matplotlib
+
+def ETI(array):
+    count = 0
+    # print('nombre de photo : '+str(len(array)))
+    for i in array:
+        fig = plt.figure(frameon=False)
+        plt.plot(i)
+        plt.xticks([]), plt.yticks([])
+        for spine in plt.gca().spines.values():
+            spine.set_visible(False)
+        filename = 'static/generate_data/' + str(count) + '.png'
+        fig.savefig(filename)
+        im_gray = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
+        im_gray = cv2.resize(im_gray, (128, 128), interpolation=cv2.INTER_LANCZOS4)
+        cv2.imwrite(filename, im_gray)
+        count += 1
+        plt.close('all')
 
 
 
@@ -121,6 +172,12 @@ parser2.add_argument('v5',type=werkzeug.datastructures.FileStorage, location='fi
 parser2.add_argument('pulses',type=int, help='pulses field cannot be blank', required=True)
 
 
+parser3 = reqparse.RequestParser()
+
+parser3.add_argument('myfile',type=werkzeug.datastructures.FileStorage, location='files', help='file field cannot be blank', required=True)
+parser3.add_argument('rate',type=int, help='Sampling rate field cannot be blank', required=True)
+
+
 # Resources
 
 class Preparation(Resource):
@@ -155,16 +212,27 @@ class LightPreparation(Resource):
         multiple_images(pulses)
         return jsonify({'message': 'success'})
 
+class File2Image(Resource):
+    def post(self):
+        # inputs :
+        # file = file.txt
+        # rate = 1000
+        data = parser3.parse_args()
+        myfile , samp_rate = data['myfile'], data['rate']
+        myfile.save('static/file.txt')
+        ETI(detect_peak(samp_rate))
+        return jsonify({'message': 'success'})
 
 
 
 
 api.add_resource(Preparation,'/prepare')
 api.add_resource(LightPreparation,'/light_prepare')
+api.add_resource(File2Image,'/file2image')
 
 
 if __name__ == '__main__':
-    app.run(debug=True,port=5001)
+    app.run(host='0.0.0.0',debug=True,port=5001)
 
 
 

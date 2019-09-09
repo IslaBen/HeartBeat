@@ -81,6 +81,36 @@
           }
         }
       }
+    },
+    "/file2image": {
+      "post": {
+        "tags": [
+          "Preparation"
+        ],
+        "summary": "takes a file .txt or .csv, according to the sampling rate number ",
+        "requestBody": {
+          "description": "Returns multiples images",
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/File2Image"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Failed. Bad post data."
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -116,6 +146,20 @@
             "format": "binary"
           },
           "pulses": {
+            "type": "integer",
+            "format": "integer"
+          }
+        }
+      },
+      "File2Image": {
+        "type": "object",
+        "properties": {
+          "myfile": {
+            "contentType": "file.txt/file.csv",
+            "type": "string",
+            "format": "binary"
+          },
+          "rate": {
             "type": "integer",
             "format": "integer"
           }
