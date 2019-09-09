@@ -1,12 +1,10 @@
 pillow
-opencv-python
+opencv-python==4.1.0.25
 numpy
 flask
 flask_restful
 flask_cors
 flask-swagger-ui
 biosppy
-os
 matplotlib
-csv
 biosppy
