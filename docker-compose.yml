@@ -1,13 +1,26 @@
 version: "3"
 services:
+  nginx: 
+    image: nginx:latest
+    container_name: production_nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/error.log:/etc/nginx/error_log.log
+      - ./nginx/cache/:/etc/nginx/cache
+      - /etc/letsencrypt/:/etc/letsencrypt/
+    ports:
+      - 80:80
+      - 443:443
+  
   labelling:
     build: ./labelling/
+    container_name: labelling
     ports:
-      - "4000:4000"
+      - "80:4000"
 
   authentication:
     # replace username/repo:tag with your name and image details
-    image: mecherefadelyoucef/jwt_microservice:latest
+    container_name: authentication
     build: ./jwt/
     volumes:
       - .:/db
@@ -16,7 +29,13 @@ services:
       restart_policy:
         condition: on-failure
     ports:
-      - "5000:5000"
+      - "80:5000"
+
+  data_preparation:
+    build: ./data_preparation/
+    container_name: data_preparation
+    expose:
+      - "80:5000"
     
 volumes:
   db:
