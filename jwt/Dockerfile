@@ -6,8 +6,6 @@ COPY . /app
 
 WORKDIR /app
 
-EXPOSE 80
-
 RUN apk add --no-cache python3-dev libstdc++ 
 
 RUN apk add --no-cache g++ 
