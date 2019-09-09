@@ -8,7 +8,13 @@ WORKDIR /app
 
 EXPOSE 80
 
-RUN pip install -r requirements.txt
+RUN apk add --no-cache python3-dev libstdc++ 
+
+RUN apk add --no-cache g++ 
+
+RUN pip3 install --upgrade pip
+
+RUN pip3 install -r requirements.txt
 
 VOLUME . /app
 
