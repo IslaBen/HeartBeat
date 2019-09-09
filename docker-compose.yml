@@ -8,7 +8,7 @@ services:
   authentication:
     # replace username/repo:tag with your name and image details
     image: mecherefadelyoucef/jwt_microservice:latest
-    build: ./jwt_microservice/
+    build: ./jwt/
     volumes:
       - .:/db
     deploy:
