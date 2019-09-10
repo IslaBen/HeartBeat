@@ -6,8 +6,5 @@ flask_restful
 flask_cors
 flask-swagger-ui
 biosppy
-os
 matplotlib
-csv
-biosppy
 requests

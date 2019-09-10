@@ -8,10 +8,8 @@ from flask_swagger_ui import get_swaggerui_blueprint
 from flask import jsonify
 import werkzeug
 import matplotlib.pyplot as plt
-import csv
 import biosppy
 import requests
-import os
 import shutil
 
 
