@@ -111,6 +111,36 @@
           }
         }
       }
+    },
+    "/file2files": {
+      "post": {
+        "tags": [
+          "Preparation"
+        ],
+        "summary": "takes a file .txt or .csv, according to the sampling rate number cut it into several .txt",
+        "requestBody": {
+          "description": "Returns multiples files",
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/File2Files"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Failed. Bad post data."
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -152,6 +182,20 @@
         }
       },
       "File2Image": {
+        "type": "object",
+        "properties": {
+          "myfile": {
+            "contentType": "file.txt/file.csv",
+            "type": "string",
+            "format": "binary"
+          },
+          "rate": {
+            "type": "integer",
+            "format": "integer"
+          }
+        }
+      },
+      "File2Files": {
         "type": "object",
         "properties": {
           "myfile": {
