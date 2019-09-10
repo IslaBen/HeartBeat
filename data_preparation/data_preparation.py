@@ -10,6 +10,9 @@ import werkzeug
 import matplotlib.pyplot as plt
 import csv
 import biosppy
+import requests
+import os
+import shutil
 
 
 # ************************** data preparation microservice **************************#
@@ -22,7 +25,7 @@ import biosppy
 # 1- ************* crop the real ecg V5 into 800 * 220 *************
 
 def crop_v5(p1,p2):
-    real_img = cv2.imread('static/real.jpg')
+    real_img = cv2.imread('static/tmp/real.jpg')
     height,width = real_img.shape[:2]
     # print(height,width)
 
@@ -40,7 +43,7 @@ def crop_v5(p1,p2):
 # 2- ************* make the image black and white with pilow *************
 
 def black_white_v5():
-    im_name = 'static/v5.png'
+    im_name = 'static/tmp/v5.png'
     im = Image.open(im_name)
     pixels = list(im.getdata())
     width, height = im.size
@@ -52,14 +55,13 @@ def black_white_v5():
 
     new_im = Image.new("RGB",(width,height))
     new_im.putdata(changed_pixels)
-    new_im.save("static/bw.png")
+    new_im.save("static/tmp/bw.png")
 
 # 3- ************* crop multiple pulses into 128 * 128 with openCV *************
 
 def multiple_images(pulses):
-    img = cv2.imread('static/bw.png')
+    img = cv2.imread('static/tmp/bw.png')
     height,width = img.shape[:2]
-
 
     col_padding = 100/pulses/100
     col_parser = 0
@@ -81,7 +83,7 @@ def multiple_images(pulses):
         if(i == 0 or i == pulses-1):
             pass
         else:
-            cv2.imwrite('static/cropped' + str(i) + '.png', re)
+            cv2.imwrite('static/data1/'+ str(i) + '.png', re)
 
 
 
@@ -90,7 +92,7 @@ def multiple_images(pulses):
 # 1- detect peak R
 
 def detect_peak(samp_rate):
-    data = np.loadtxt('static/file.txt')
+    data = np.loadtxt('static/tmp/file.txt')
     signals = []
     count = 1
     peaks = biosppy.signals.ecg.christov_segmenter(signal=data, sampling_rate=samp_rate)[0]
@@ -115,7 +117,7 @@ def ETI(array):
         plt.xticks([]), plt.yticks([])
         for spine in plt.gca().spines.values():
             spine.set_visible(False)
-        filename = 'static/generate_data/' + str(count) + '.png'
+        filename = 'static/data2/' + str(count) + '.png'
         fig.savefig(filename)
         im_gray = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
         im_gray = cv2.resize(im_gray, (128, 128), interpolation=cv2.INTER_LANCZOS4)
@@ -123,6 +125,40 @@ def ETI(array):
         count += 1
         plt.close('all')
 
+# 3 - generate multiple .txt
+
+def ETF(array):
+    count = 0
+    for i in array:
+        dataForSvm =open('static/data3/' + str(count) + '.txt','w')
+        for one_number in i:
+            dataForSvm.write(str(one_number)+'\n')
+        dataForSvm.close()
+        count += 1
+
+
+# ------------------------ Send to model API ------------------------
+
+def sendtoCNN(dir_name):
+    data = shutil.make_archive('static/tmp/data', 'zip', dir_name)
+    multipart_form_data = {
+        'data': open('static/tmp/data.zip','rb'),
+    }
+    response = requests.post('http://192.168.43.249:5000/predict',
+                             files=multipart_form_data)
+    print(response.status_code)
+    return response.json()
+
+def sendtoSVM(dir_name,samp_rate):
+    data = shutil.make_archive('static/tmp/data', 'zip', dir_name)
+    multipart_form_data = {
+        'data': open('static/tmp/data.zip','rb'),
+        'rate':samp_rate
+    }
+    response = requests.post('http://192.168.43.235:5000/predict',
+                             files=multipart_form_data)
+    print(response.status_code)
+    print(response.text)
 
 
 ########## Flask #########
@@ -188,17 +224,15 @@ class Preparation(Resource):
         # p1 , p2 = (704.0,621.36),(1267.2,733.55)
         # pulses = 6
         real_img_name, p1, p2, pulses = data['real_image'],(float(data['p1'].split(',')[0]),float(data['p1'].split(',')[1])), (float(data['p2'].split(',')[0]),float(data['p2'].split(',')[1])), data['pulses']
-        real_img_name.save('static/real.jpg')
+        real_img_name.save('static/tmp/real.jpg')
         # print(p1,type(p1),p2,type(p2))
         try:
             crop_v5(p1,p2)
         except:
             return jsonify({'message': 'the size of the image is very small'})
-
         black_white_v5()
         multiple_images(pulses)
-        return jsonify({'message': 'success'})
-
+        return sendtoCNN('static/data1')
 
 class LightPreparation(Resource):
     def post(self):
@@ -207,10 +241,10 @@ class LightPreparation(Resource):
         # pulses = 3
         data = parser2.parse_args()
         v5 , pulses = data['v5'], data['pulses']
-        v5.save('static/v5.png')
+        v5.save('static/tmp/v5.png')
         black_white_v5()
         multiple_images(pulses)
-        return jsonify({'message': 'success'})
+        return sendtoCNN('static/data1')
 
 class File2Image(Resource):
     def post(self):
@@ -219,20 +253,32 @@ class File2Image(Resource):
         # rate = 1000
         data = parser3.parse_args()
         myfile , samp_rate = data['myfile'], data['rate']
-        myfile.save('static/file.txt')
+        myfile.save('static/tmp/file.txt')
         ETI(detect_peak(samp_rate))
-        return jsonify({'message': 'success'})
+        return sendtoCNN('static/data2')
 
+class File2Files(Resource):
+    def post(self):
+        # inputs :
+        # file = file.txt
+        # rate = 1000
+        data = parser3.parse_args()
+        myfile , samp_rate = data['myfile'], data['rate']
+        myfile.save('static/tmp/file.txt')
+        ETF(detect_peak(samp_rate))
+        sendtoSVM('static/data3',samp_rate)
+        return (jsonify({'message':'success'}))
 
 
 
 api.add_resource(Preparation,'/prepare')
 api.add_resource(LightPreparation,'/light_prepare')
 api.add_resource(File2Image,'/file2image')
+api.add_resource(File2Files,'/file2files')
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0',debug=True,port=5001)
+    app.run(host='0.0.0.0',debug=True)
 
 
 
