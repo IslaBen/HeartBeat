@@ -1,42 +1,48 @@
-version: "3"
+version: '3'
+
 services:
-  nginx: 
-    image: nginx:latest
-    container_name: production_nginx
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
-      - ./nginx/error.log:/etc/nginx/error_log.log
-      - ./nginx/cache/:/etc/nginx/cache
-      - /etc/letsencrypt/:/etc/letsencrypt/
-    ports:
-      - 80:80
-      - 443:443
-  
   labelling:
     build: ./labelling/
     container_name: labelling
-    ports:
-      - "80"
+    restart: on-failure
+    networks: 
+      - backend
 
+  data_preparation:
+    build: ./data_preparation/
+    container_name: data_preparation
+    restart: on-failure
+    networks: 
+      - backend
+      
   authentication:
     # replace username/repo:tag with your name and image details
     container_name: authentication
     build: ./jwt/
     volumes:
       - .:/db
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: on-failure
-    ports:
-      - "80"
+    restart: on-failure
+    networks: 
+      - backend
 
-  data_preparation:
-    build: ./data_preparation/
-    container_name: data_preparation
-    expose:
-      - "80"
-    
+  web-server:
+    image: nginx
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./config/nginx:/etc/nginx/conf.d
+      # if need to add https using certbot
+      # - ./data/certbot/conf:/etc/letsencrypt
+    networks:
+      - backend
+    depends_on:
+      - labelling
+      - authentication
+      - data_preparation
+
+networks:
+  backend:
+
 volumes:
   db:
-
