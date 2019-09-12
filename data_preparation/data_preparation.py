@@ -166,7 +166,7 @@ app = Flask(__name__)
 
 ### swagger specific ###
 SWAGGER_URL = '/predict/swagger'
-API_URL = '/static/swagger.json'
+API_URL = '/predict/static/swagger.json'
 SWAGGERUI_BLUEPRINT = get_swaggerui_blueprint(
     SWAGGER_URL,
     API_URL,
