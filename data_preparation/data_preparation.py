@@ -186,7 +186,7 @@ app.config['CORS_HEADERS'] = 'application/json'
 
 
 
-@app.route('/')
+@app.route('/predict')
 def index():
     return jsonify({'message': 'Hello, World!'})
 
