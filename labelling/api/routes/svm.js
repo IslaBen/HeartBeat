@@ -18,6 +18,10 @@ const upload = multer({storage:storage, limits: {
     fileSize: 1024*1024*3,
     }});
 
+
+//==================================================================================================
+//========================= get all enteries =======================================================
+
 router.get('/',checkAuth,(req,res, next) => {
     Svm.find()
         .select('file label _id')
@@ -46,6 +50,9 @@ router.get('/',checkAuth,(req,res, next) => {
             });
         });
 });
+
+//==================================================================================================
+//========================= post a new entry =======================================================
 
 router.post('/',checkAuth,upload.single('entryFile'),(req,res, next) => {
     console.log(req.file);
@@ -80,6 +87,9 @@ router.post('/',checkAuth,upload.single('entryFile'),(req,res, next) => {
 
 });
 
+//==================================================================================================
+//========================= get a specific entry ===================================================
+
 router.get('/:svmId',checkAuth,(req,res, next) => {
     const id = req.params.svmId;
     Svm.findById(id)
@@ -109,6 +119,9 @@ router.get('/:svmId',checkAuth,(req,res, next) => {
         })
 });
 
+//==================================================================================================
+//========================= update a specific entry ================================================
+
 router.patch('/:svmId',checkAuth,(req,res, next) => {
     const id = req.params.svmId;
     const updateOpts = {};
@@ -134,6 +147,9 @@ router.patch('/:svmId',checkAuth,(req,res, next) => {
             });
         });
 });
+
+//==================================================================================================
+//========================= delete a specific entery ===============================================
 
 router.delete('/:svmId',checkAuth,(req,res, next) => {
     const id = req.params.svmId;

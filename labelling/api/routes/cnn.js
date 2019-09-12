@@ -17,6 +17,10 @@ const upload = multer({storage:storage, limits: {
         fileSize: 1024*1024*3,
     }});
 
+//==================================================================================================
+//========================= get all enteries =======================================================
+
+
 router.get('/',checkAuth,(req,res, next) => {
     Cnn.find()
         .select('file label _id')
@@ -45,6 +49,9 @@ router.get('/',checkAuth,(req,res, next) => {
             });
         });
 });
+
+//==================================================================================================
+//========================= post a new entry =======================================================
 
 router.post('/',checkAuth, upload.single('entryFile'),(req,res, next) => {
     console.log(req.file);
@@ -79,6 +86,9 @@ router.post('/',checkAuth, upload.single('entryFile'),(req,res, next) => {
 
 });
 
+//==================================================================================================
+//========================= get a specific entry ===================================================
+
 router.get('/:cnnId',checkAuth,(req,res, next) => {
     const id = req.params.cnnId;
     Cnn.findById(id)
@@ -108,6 +118,10 @@ router.get('/:cnnId',checkAuth,(req,res, next) => {
         })
 });
 
+//==================================================================================================
+//========================= update a specific entry ================================================
+
+
 router.patch('/:cnnId',checkAuth,(req,res, next) => {
     const id = req.params.cnnId;
     const updateOpts = {};
@@ -134,6 +148,10 @@ router.patch('/:cnnId',checkAuth,(req,res, next) => {
         });
 });
 
+//==================================================================================================
+//========================= delete a specific entery ===============================================
+
+
 router.delete('/:cnnId',checkAuth,(req,res, next) => {
     const id = req.params.cnnId;
     Cnn.remove({
@@ -152,5 +170,8 @@ router.delete('/:cnnId',checkAuth,(req,res, next) => {
             });
         });
 });
+
+//==================================================================================================
+//==================================================================================================
 
 module.exports = router;
