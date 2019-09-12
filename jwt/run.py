@@ -162,7 +162,7 @@ parser_login.add_argument('username_email', help = 'Username/Email field cannot 
 parser_login.add_argument('password', help = 'Password field cannot be blank', required = True)
 
 
-@app.route('/')
+@app.route('/auth')
 def index():
     return jsonify({'message': 'Hello, World!'})
 
