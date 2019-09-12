@@ -27,7 +27,8 @@ $ docker run -d -p 5000:5000 SVM_flask_app
 
 ### Clone the repo
 ```shell
-$ git clone https://github.com/mtobeiyf/kerasCNN-flask-webApp.git
+$ git clone https://github.com/IslaBen/HeartBeat.git
+cd APIsvm
 ```
 
 ### Install requirements
