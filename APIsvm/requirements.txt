@@ -1,0 +1,8 @@
+sklearn
+Werkzeug
+Flask
+numpy
+pandas
+joblib
+shutil
+glob
