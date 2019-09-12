@@ -1,20 +1,27 @@
 version: '3'
 
 services:
+  cnn_model:
+    image: osmolr/model-cnn-app:kerasCNN-flask
+    container_name: cnn_model
+    restart: on-failure
+    networks:
+      - backend
+
   labelling:
     build: ./labelling/
     container_name: labelling
     restart: on-failure
-    networks: 
+    networks:
       - backend
 
   data_preparation:
     build: ./data_preparation/
     container_name: data_preparation
     restart: on-failure
-    networks: 
+    networks:
       - backend
-      
+
   authentication:
     # replace username/repo:tag with your name and image details
     container_name: authentication
@@ -22,7 +29,7 @@ services:
     volumes:
       - .:/db
     restart: on-failure
-    networks: 
+    networks:
       - backend
 
   web-server:
@@ -46,3 +53,4 @@ networks:
 
 volumes:
   db:
+
