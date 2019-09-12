@@ -34,7 +34,7 @@ app.register_blueprint(SWAGGERUI_BLUEPRINT, url_prefix=SWAGGER_URL)
 
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
 
-api = Api(app)
+api = Api(app,prefix="/auth")
 
 # cros config
 app.config['CORS_HEADERS'] = 'application/json'
