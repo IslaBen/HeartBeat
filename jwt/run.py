@@ -20,7 +20,7 @@ from flask_swagger_ui import get_swaggerui_blueprint
 app = Flask(__name__)
 
 ### swagger specific ###
-SWAGGER_URL = '/swagger'
+SWAGGER_URL = '/auth/swagger'
 API_URL = '/static/swagger.json'
 SWAGGERUI_BLUEPRINT = get_swaggerui_blueprint(
     SWAGGER_URL,
