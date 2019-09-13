@@ -12,6 +12,9 @@ services:
     build: ./labelling/
     container_name: labelling
     restart: on-failure
+    volumes:
+      - ./labelling/uploads/cnn:/usr/src/API/uploads/cnn
+      - ./labelling/uploads/svm:/usr/src/API/uploads/svm
     networks:
       - backend
 
