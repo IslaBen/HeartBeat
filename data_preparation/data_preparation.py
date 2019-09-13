@@ -142,7 +142,7 @@ def sendtoCNN(dir_name):
     multipart_form_data = {
         'data': open('static/tmp/data.zip','rb'),
     }
-    response = requests.post('http://192.168.43.249:5000/predict',
+    response = requests.post('http://model_cnn/predict',
                              files=multipart_form_data)
     print(response.status_code)
     return response.json()
