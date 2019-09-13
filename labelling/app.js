@@ -35,8 +35,8 @@ app.use(( req, res, next)=>{
 });
 
 //api routes
-app.use('/cnn',cnnRoutes);
-app.use('/svm',svmRoutes);
+app.use('/labelling/cnn',cnnRoutes);
+app.use('/labelling/svm',svmRoutes);
 
 // 404 routes
 app.use((req,res,next)=>{

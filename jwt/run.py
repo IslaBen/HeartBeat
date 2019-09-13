@@ -20,8 +20,8 @@ from flask_swagger_ui import get_swaggerui_blueprint
 app = Flask(__name__)
 
 ### swagger specific ###
-SWAGGER_URL = '/swagger'
-API_URL = '/static/swagger.json'
+SWAGGER_URL = '/auth/swagger'
+API_URL = '/auth/static/swagger.json'
 SWAGGERUI_BLUEPRINT = get_swaggerui_blueprint(
     SWAGGER_URL,
     API_URL,
@@ -34,7 +34,7 @@ app.register_blueprint(SWAGGERUI_BLUEPRINT, url_prefix=SWAGGER_URL)
 
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
 
-api = Api(app)
+api = Api(app,prefix="/auth")
 
 # cros config
 app.config['CORS_HEADERS'] = 'application/json'
@@ -162,7 +162,7 @@ parser_login.add_argument('username_email', help = 'Username/Email field cannot 
 parser_login.add_argument('password', help = 'Password field cannot be blank', required = True)
 
 
-@app.route('/')
+@app.route('/auth')
 def index():
     return jsonify({'message': 'Hello, World!'})
 

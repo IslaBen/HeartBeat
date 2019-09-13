@@ -165,8 +165,8 @@ def sendtoSVM(dir_name,samp_rate):
 app = Flask(__name__)
 
 ### swagger specific ###
-SWAGGER_URL = '/swagger'
-API_URL = '/static/swagger.json'
+SWAGGER_URL = '/predict/swagger'
+API_URL = '/predict/static/swagger.json'
 SWAGGERUI_BLUEPRINT = get_swaggerui_blueprint(
     SWAGGER_URL,
     API_URL,
@@ -179,14 +179,14 @@ app.register_blueprint(SWAGGERUI_BLUEPRINT, url_prefix=SWAGGER_URL)
 
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
 
-api = Api(app)
+api = Api(app,prefix="/predict")
 
 # cros config
 app.config['CORS_HEADERS'] = 'application/json'
 
 
 
-@app.route('/')
+@app.route('/predict')
 def index():
     return jsonify({'message': 'Hello, World!'})
 
